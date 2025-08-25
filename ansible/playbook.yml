@@ -1,0 +1,160 @@
+---
+- name: Deploy BrewBook to Kubernetes
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    app_name: brewbook
+    docker_image_name: "{{ lookup('env', 'DOCKER_IMAGE_NAME') | default('Huu_Truc_Nguyen/brewbook') }}"
+    docker_image_tag: "{{ lookup('env', 'DOCKER_IMAGE_TAG') | default('latest') }}"
+    supabase_url: "{{ lookup('env', 'NEXT_PUBLIC_SUPABASE_URL') }}"
+    supabase_anon_key: "{{ lookup('env', 'NEXT_PUBLIC_SUPABASE_ANON_KEY') }}"
+    supabase_service_key: "{{ lookup('env', 'NEXT_PUBLIC_SUPABASE_SERVICE_KEY') }}"
+    k8s_namespace: "{{ lookup('env', 'K8S_NAMESPACE') | default('default') }}"
+    k8s_replicas: "{{ lookup('env', 'K8S_REPLICAS') | default(2) }}"
+  
+  tasks:
+    - name: Check if .env.local exists
+      stat:
+        path: ../.env.local
+      register: env_file
+      
+    - name: Load environment variables from .env.local
+      include_vars: ../.env.local
+      when: env_file.stat.exists
+      
+    - name: Set Docker image variables
+      set_fact:
+        docker_image_name: "{{ DOCKER_IMAGE_NAME | default('Huu_Truc_Nguyen/brewbook') }}"
+        docker_image_tag: "{{ DOCKER_IMAGE_TAG | default('latest') }}"
+        supabase_url: "{{ NEXT_PUBLIC_SUPABASE_URL }}"
+        supabase_anon_key: "{{ NEXT_PUBLIC_SUPABASE_ANON_KEY }}"
+        supabase_service_key: "{{ NEXT_PUBLIC_SUPABASE_SERVICE_KEY }}"
+        k8s_namespace: "{{ K8S_NAMESPACE | default('default') }}"
+        k8s_replicas: "{{ K8S_REPLICAS | default(2) }}"
+        
+    - name: Validate required variables
+      assert:
+        that:
+          - supabase_url is defined
+          - supabase_anon_key is defined
+          - docker_image_name is defined
+          - docker_image_tag is defined
+        fail_msg: "Missing required environment variables. Check your .env.local file."
+        
+    - name: Display deployment information
+      debug:
+        msg: |
+          🚀 Deploying BrewBook to Kubernetes
+          📦 Docker Image: {{ docker_image_name }}:{{ docker_image_tag }}
+          🌍 Supabase URL: {{ supabase_url }}
+          🔑 Supabase Key: {{ supabase_anon_key[:20] }}...
+          ☸️ Namespace: {{ k8s_namespace }}
+          📊 Replicas: {{ k8s_replicas }}
+          
+    - name: Build Docker image
+      docker_image:
+        name: "{{ docker_image_name }}:{{ docker_image_tag }}"
+        source: build
+        build:
+          path: ..
+          dockerfile: Dockerfile
+        force_source: true
+        
+    - name: Tag Docker image as latest
+      docker_image:
+        name: "{{ docker_image_name }}:latest"
+        source: "{{ docker_image_name }}:{{ docker_image_tag }}"
+        force_source: true
+        
+    - name: Push Docker image
+      docker_image:
+        name: "{{ docker_image_name }}:{{ docker_image_tag }}"
+        push: true
+        username: "{{ lookup('env', 'DOCKER_USERNAME') | default(omit) }}"
+        password: "{{ lookup('env', 'DOCKER_PASSWORD') | default(omit) }}"
+        
+    - name: Push Docker image as latest
+      docker_image:
+        name: "{{ docker_image_name }}:latest"
+        push: true
+        username: "{{ lookup('env', 'DOCKER_USERNAME') | default(omit) }}"
+        password: "{{ lookup('env', 'DOCKER_PASSWORD') | default(omit) }}"
+        
+    - name: Create Kubernetes namespace
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ k8s_namespace }}"
+            
+    - name: Create Kubernetes secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: brewbook-secrets
+            namespace: "{{ k8s_namespace }}"
+            labels:
+              app: "{{ app_name }}"
+          type: Opaque
+          data:
+            supabase-url: "{{ supabase_url | b64encode }}"
+            supabase-anon-key: "{{ supabase_anon_key | b64encode }}"
+            supabase-service-key: "{{ supabase_service_key | b64encode }}"
+            
+    - name: Update Kubernetes deployment with image
+      replace:
+        path: ../k8s/deployment.yaml
+        regexp: 'image: .*'
+        replace: 'image: {{ docker_image_name }}:{{ docker_image_tag }}'
+        
+    - name: Update Helm values with image
+      replace:
+        path: ../helm/brewbook/values.yaml
+        regexp: 'repository: .*'
+        replace: 'repository: {{ docker_image_name }}'
+        
+    - name: Apply Kubernetes manifests
+      kubernetes.core.k8s:
+        state: present
+        src: ../k8s/
+        namespace: "{{ k8s_namespace }}"
+        
+    - name: Wait for pods to be ready
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: "{{ k8s_namespace }}"
+        label_selectors:
+          - app={{ app_name }}
+      register: pods
+      
+    - name: Check pod status
+      debug:
+        msg: "Pod {{ item.metadata.name }} is {{ item.status.phase }}"
+      loop: "{{ pods.resources }}"
+      
+    - name: Get Kubernetes resources
+      kubernetes.core.k8s_info:
+        kind: "{{ item }}"
+        namespace: "{{ k8s_namespace }}"
+        label_selectors:
+          - app={{ app_name }}
+      loop:
+        - Pod
+        - Service
+        - Deployment
+      register: k8s_resources
+      
+    - name: Display deployment summary
+      debug:
+        msg: |
+          🎉 Deployment completed successfully!
+          📊 Resources created in namespace: {{ k8s_namespace }}
+          🌐 Access your app with: kubectl port-forward service/{{ app_name }} 8080:80
+          🔒 Secrets are stored securely in Kubernetes

@@ -1,16 +1,17 @@
-version: '3.8'
-
 services:
   brewbook:
-    build: .
-    image: huutrucnguyen0508/brewbook:latest
-    container_name: brewbook-app
+    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_SUPABASE_URL=https://lxicmxufvsftmhyzqkkn.supabase.co
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4aWNteHVmdnNmdG1oeXpxa2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNDA0NjIsImV4cCI6MjA3MTcxNjQ2Mn0.a3zfvDl_gxOOUW406pgExRqkzHJXWnd6isXO67bam4g
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - NODE_ENV=${NODE_ENV}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    working_dir: /app
     restart: unless-stopped
     networks:
       - brewbook-network

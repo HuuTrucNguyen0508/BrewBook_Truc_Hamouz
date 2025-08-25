@@ -1,168 +1,311 @@
-# 🚀 BrewBook Kubernetes Deployment Guide
+# ☸️ Kubernetes Deployment Guide
 
-## 📋 Prerequisites
+This guide covers deploying your BrewBook application to Kubernetes using both kubectl and Helm.
 
-- ✅ Docker installed and running
-- ✅ DockerHub account
-- ✅ Kubernetes cluster (local or cloud)
-- ✅ kubectl configured
-- ✅ Helm (optional, for advanced deployment)
+## 🛠️ Prerequisites
 
-## 🐳 Step 1: Build and Push to DockerHub
+- **Kubernetes cluster** (local or cloud)
+- **kubectl** configured and connected to your cluster
+- **Docker** for building images
+- **DockerHub account** for image registry
+- **Helm** (optional, for advanced deployments)
 
-### **Option A: Automated Script (Recommended)**
-```powershell
-# Run the deployment script
-.\deploy-to-k8s.ps1 -DockerHubUsername "your-dockerhub-username"
+## 🚀 Quick Start
+
+### 1. Build and Push Docker Image
+
+```bash
+# Build the image
+docker build -t your-username/brewbook:latest .
+
+# Tag for DockerHub
+docker tag your-username/brewbook:latest your-username/brewbook:latest
+
+# Push to DockerHub
+docker push your-username/brewbook:latest
 ```
 
-### **Option B: Manual Commands**
+### 2. Update Configuration
+
+Edit `k8s/deployment.yaml` and `helm/brewbook/values.yaml` with your:
+- DockerHub username
+- Supabase credentials
+- Image tag
+
+### 3. Deploy to Kubernetes
+
 ```bash
-# 1. Build the image
-docker build -t brewbook:latest .
-
-# 2. Tag for DockerHub
-docker tag brewbook:latest YOUR_USERNAME/brewbook:latest
-
-# 3. Push to DockerHub
-docker push YOUR_USERNAME/brewbook:latest
-```
-
-## 🔧 Step 2: Update Configuration
-
-**Replace placeholders in these files:**
-- `k8s/deployment.yaml` - Replace `YOUR_DOCKERHUB_USERNAME`
-- `helm/brewbook/values.yaml` - Replace `YOUR_DOCKERHUB_USERNAME`
-
-## 🚀 Step 3: Deploy to Kubernetes
-
-### **Option A: Direct kubectl**
-```bash
+# Apply all manifests
 kubectl apply -f k8s/
+
+# Or deploy with Helm
+helm upgrade --install brewbook ./helm/brewbook
 ```
 
-### **Option B: Helm Chart**
+## 📋 Manual Deployment
+
+### Apply Kubernetes Manifests
+
 ```bash
-helm install brewbook ./helm/brewbook
+# Deploy the application
+kubectl apply -f k8s/deployment.yaml
+
+# Create the service
+kubectl apply -f k8s/service.yaml
+
+# Set up ingress (if using)
+kubectl apply -f k8s/ingress.yaml
 ```
 
-## 📊 Step 4: Verify Deployment
+### Check Deployment Status
 
 ```bash
-# Check pods
+# View pods
 kubectl get pods -l app=brewbook
 
-# Check services
+# View services
 kubectl get services -l app=brewbook
 
-# Check ingress
+# View ingress
 kubectl get ingress -l app=brewbook
+```
+
+### Access Your Application
+
+```bash
+# Port forward to access locally
+kubectl port-forward service/brewbook 8080:80
+
+# Access at http://localhost:8080
+```
+
+## 🎯 Helm Deployment
+
+### Install Helm Chart
+
+```bash
+# Install/upgrade the chart
+helm upgrade --install brewbook ./helm/brewbook
+
+# With custom values
+helm upgrade --install brewbook ./helm/brewbook \
+  --set image.repository=your-username/brewbook \
+  --set image.tag=latest
+```
+
+### Customize Values
+
+Edit `helm/brewbook/values.yaml`:
+- Replica count
+- Resource limits
+- Environment variables
+- Service type
+- Ingress configuration
+
+### Helm Commands
+
+```bash
+# List releases
+helm list
+
+# Get release status
+helm status brewbook
+
+# Uninstall release
+helm uninstall brewbook
+
+# Rollback to previous version
+helm rollback brewbook 1
+```
+
+## 🔧 Service Types
+
+### ClusterIP (Default)
+- Internal cluster access only
+- Use with port-forwarding for local access
+
+### LoadBalancer
+- External access via cloud load balancer
+- Good for production deployments
+
+```bash
+kubectl apply -f k8s/service-loadbalancer.yaml
+```
+
+### NodePort
+- Direct access on node ports
+- Good for development/testing
+
+```bash
+kubectl apply -f k8s/service-nodeport.yaml
+# Access at http://localhost:30080
+```
+
+## 🌐 Ingress Configuration
+
+### Basic Ingress
+```bash
+kubectl apply -f k8s/ingress.yaml
+```
+
+### Custom Host
+Edit `k8s/ingress.yaml`:
+```yaml
+spec:
+  rules:
+  - host: your-domain.com  # Change this
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: brewbook
+            port:
+              number: 80
+```
+
+## 📊 Monitoring and Scaling
+
+### Check Pod Status
+```bash
+# View pod details
+kubectl describe pod -l app=brewbook
 
 # View logs
 kubectl logs -l app=brewbook
+
+# Follow logs
+kubectl logs -f -l app=brewbook
 ```
 
-## 🌐 Step 5: Access Your App
-
-### **Port Forward (for testing)**
+### Scaling
 ```bash
-kubectl port-forward service/brewbook 3000:3000
-# Access at http://localhost:3000
-```
-
-### **Ingress (if configured)**
-- Check your ingress controller
-- Update DNS if needed
-- Access via the configured hostname
-
-## 🔍 Troubleshooting
-
-### **Common Issues:**
-
-1. **Image Pull Errors**
-   ```bash
-   kubectl describe pod <pod-name>
-   # Check for image pull issues
-   ```
-
-2. **Environment Variables**
-   ```bash
-   kubectl exec -it <pod-name> -- env | grep SUPABASE
-   # Verify environment variables are set
-   ```
-
-3. **Database Connection**
-   ```bash
-   kubectl logs <pod-name>
-   # Check for database connection errors
-   ```
-
-### **Useful Commands:**
-```bash
-# Delete and redeploy
-kubectl delete -f k8s/
-kubectl apply -f k8s/
-
 # Scale deployment
 kubectl scale deployment brewbook --replicas=3
 
-# Update image
-kubectl set image deployment/brewbook brewbook=YOUR_USERNAME/brewbook:new-tag
+# Or edit deployment
+kubectl edit deployment brewbook
 ```
 
-## 📈 Scaling and Monitoring
-
-### **Horizontal Pod Autoscaler**
+### Resource Monitoring
 ```bash
-# Check HPA status
-kubectl get hpa
-
-# Manual scaling
-kubectl scale deployment brewbook --replicas=5
-```
-
-### **Resource Monitoring**
-```bash
-# Resource usage
+# View resource usage
 kubectl top pods -l app=brewbook
 
-# Describe resources
-kubectl describe deployment brewbook
+# View node resources
+kubectl top nodes
 ```
 
-## 🎯 Production Considerations
+## 🔒 Security Considerations
 
-1. **Resource Limits**: Adjust CPU/memory limits in deployment
-2. **Health Checks**: Verify liveness/readiness probes
-3. **Security**: Use Kubernetes secrets for sensitive data
-4. **Monitoring**: Set up Prometheus/Grafana
-5. **Logging**: Configure centralized logging
-
-## 🔄 Updating Your App
-
+### Secrets Management
 ```bash
-# 1. Build new image
-docker build -t brewbook:v2 .
+# Create secret for sensitive data
+kubectl create secret generic brewbook-secrets \
+  --from-literal=supabase-url=your-url \
+  --from-literal=supabase-key=your-key
 
-# 2. Tag and push
-docker tag brewbook:v2 YOUR_USERNAME/brewbook:v2
-docker push YOUR_USERNAME/brewbook:v2
+# Reference in deployment
+env:
+- name: NEXT_PUBLIC_SUPABASE_URL
+  valueFrom:
+    secretKeyRef:
+      name: brewbook-secrets
+      key: supabase-url
+```
 
-# 3. Update deployment
-kubectl set image deployment/brewbook brewbook=YOUR_USERNAME/brewbook:v2
+### Network Policies
+```bash
+# Restrict pod-to-pod communication
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: brewbook-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: brewbook
+  policyTypes:
+  - Ingress
+  - Egress
+EOF
+```
 
-# 4. Monitor rollout
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**Pods not starting:**
+```bash
+# Check pod events
+kubectl describe pod <pod-name>
+
+# Check pod logs
+kubectl logs <pod-name>
+```
+
+**Service not accessible:**
+```bash
+# Check service endpoints
+kubectl get endpoints brewbook
+
+# Test service connectivity
+kubectl run test --image=busybox --rm -it --restart=Never -- wget -O- http://brewbook
+```
+
+**Image pull errors:**
+```bash
+# Check image pull policy
+kubectl get pod <pod-name> -o yaml | grep imagePullPolicy
+
+# Verify image exists
+docker pull your-username/brewbook:latest
+```
+
+### Debug Commands
+```bash
+# Get all resources
+kubectl get all -l app=brewbook
+
+# View events
+kubectl get events --sort-by='.lastTimestamp'
+
+# Check cluster info
+kubectl cluster-info
+```
+
+## 🔄 Update Deployment
+
+### Rolling Update
+```bash
+# Update image
+kubectl set image deployment/brewbook brewbook=your-username/brewbook:v2.0.0
+
+# Check rollout status
 kubectl rollout status deployment/brewbook
+
+# Rollback if needed
+kubectl rollout undo deployment/brewbook
+```
+
+### Helm Update
+```bash
+# Update with new values
+helm upgrade brewbook ./helm/brewbook \
+  --set image.tag=v2.0.0
+
+# Check release history
+helm history brewbook
 ```
 
 ## 📚 Additional Resources
 
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
 - [Helm Documentation](https://helm.sh/docs/)
-- [Docker Documentation](https://docs.docker.com/)
+- [Kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 
 ---
 
-**🎉 Your BrewBook app is now running on Kubernetes!**
-
-For support, check the logs and use the troubleshooting commands above.
+**Happy deploying! ☸️✨**

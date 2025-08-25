@@ -1,256 +1,306 @@
-# BrewBook — Next.js + Supabase + shadcn/ui Boilerplate
+# 🍵 BrewBook — Next.js + Supabase + shadcn/ui Boilerplate
 
-A mobile‑first recipe app for coffee and specialty drinks (coffee, matcha, ube, teas) with AI helpers. Built on **Next.js (App Router)**, **Tailwind CSS**, **shadcn/ui**, **Supabase** (Auth + Postgres + Storage), optional **Cloudinary**, and packaged for **Docker** + **Kubernetes** (with a Helm chart).
+A mobile-first recipe app for coffee and specialty drinks (coffee, matcha, ube, teas) with user authentication and recipe management. Built on **Next.js (App Router)**, **Tailwind CSS**, **shadcn/ui**, **Supabase** (Auth + Postgres + Storage), and packaged for **Docker** + **Kubernetes** (with Helm charts).
 
 ## ✨ Features
 
-- **Onboarding** with preference selection (Coffee, Matcha, Ube, Seasonal) + Sign in with Google/Apple (via Supabase) or continue as Guest
-- **Home/Discover** feed with **Drink of the Day** (from AI) and sections: For You, Trending, Seasonal Specials
-- **Recipe Detail**: image/video, ingredients, steps; actions: Save, **AI Remix**, Share
-- **AI Recipe Generator**: given ingredients or an existing recipe, returns 3 ideas
-- **Create/Upload recipe** (title, ingredients, steps, media upload) + optional AI assist (auto-format + name suggestions)
-- **Saved Recipes** with search + filters (type, hot/iced)
-- **Phase 2** (optional): Community explore, weekly challenges, likes/comments (scaffolded but feature-flagged)
-- **Dark theme** with coffee‑inspired accents (black, brown, violet)
-- **Production‑ready** structure, modular components, SSR-friendly Supabase client
+- ☕ **Recipe Management** - Create, edit, and organize coffee/drink recipes
+- 🔐 **User Authentication** - Sign up, login, and user-specific content
+- 💾 **Save Recipes** - Users can save and manage their favorite recipes
+- 🌙 **Theme Switching** - Light and dark mode with proper contrast
+- 📱 **Mobile-First Design** - Responsive UI optimized for mobile devices
+- 🎨 **Modern UI** - Built with shadcn/ui components and Tailwind CSS
+- 🗄️ **Database** - Supabase PostgreSQL with Row Level Security
+- 🐳 **Docker Ready** - Containerized for easy deployment
+- ☸️ **Kubernetes Ready** - Full K8s manifests and Helm charts included
+- 🔒 **Secure Secrets** - Environment variables and Kubernetes secrets management
+- 🛡️ **Zero Hardcoded Secrets** - All credentials externalized and secured
 
 ## 🚀 Quick Start
 
-### 1. Clone and Install
+### Prerequisites
+- Node.js 18+ 
+- Docker and Docker Compose
+- Kubernetes cluster (optional)
+- Supabase account and project
 
+### 1. Clone and Setup
 ```bash
-# Clone the repository
-git clone <your-repo-url>
+git clone <your-repo>
 cd brewbook
-
-# Install dependencies
 npm install
 ```
 
-### 2. Environment Setup
-
+### 2. Environment Variables
+Copy `env.template` to `.env.local` and fill in your Supabase credentials:
 ```bash
-# Copy environment file
-cp env.example .env.local
-
-# Edit .env.local with your credentials
-# - Supabase URL and keys
-# - OpenAI API key
-# - Optional Cloudinary credentials
+cp env.template .env.local
+# Edit .env.local with your actual values
 ```
 
 ### 3. Database Setup
-
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Run the SQL from `supabase/migrations/001_init.sql` in your Supabase SQL editor
-3. Create a storage bucket called `recipe-media` (public)
-4. Configure OAuth providers (Google/Apple) in Authentication > Providers
-
-### 4. Run Development Server
-
-```bash
-npm run dev
+Run the SQL migration in your Supabase SQL Editor:
+```sql
+-- See supabase/migrations/001_init.sql
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+### 4. Choose Your Deployment
 
-## 🗂️ Project Structure
+#### Option A: Docker Compose (Simplest)
+```bash
+docker-compose up -d
+# Access at http://localhost:3000
+```
+
+#### Option B: Kubernetes (Production-ready)
+```bash
+# Build and push image
+docker build -t your-username/brewbook:latest .
+docker push your-username/brewbook:latest
+
+# Deploy to K8s (secrets are automatically created from .env.local)
+.\deploy-to-k8s.ps1 -DockerHubUsername your-username -ImageTag latest
+
+# Or manually create secrets and deploy
+cd k8s/secrets
+.\create-secrets.ps1
+kubectl apply -f brewbook-secrets.yaml
+kubectl apply -f ../
+kubectl port-forward service/brewbook 8080:80
+# Access at http://localhost:8080
+```
+
+## 🔐 Secrets Management
+
+**Security first!** Your sensitive data is protected:
+
+- **`.env.local`** - Your secrets (gitignored)
+- **`env.template`** - Template for environment variables
+- **Automatic secret creation** - Kubernetes secrets from `.env.local`
+- **No hardcoded values** - All sensitive data is externalized
+- **Placeholder system** - All manifests use safe placeholders
+- **Environment variables** - Docker Compose reads from `.env.local`
+
+See [SECRETS_MANAGEMENT.md](./SECRETS_MANAGEMENT.md) for detailed instructions.
+
+## 🐳 Docker Deployment
+
+### Simple Docker Compose
+```bash
+# Start the app
+docker-compose up -d
+
+# Check status
+docker-compose ps
+
+# View logs
+docker-compose logs -f brewbook
+
+# Stop the app
+docker-compose down
+```
+
+### Build and Run Manually
+```bash
+# Build the image
+docker build -t brewbook .
+
+# Run the container
+docker run -p 3000:3000 brewbook
+```
+
+## ☸️ Kubernetes Deployment
+
+### Quick Deploy
+```bash
+# Apply all manifests (secrets are auto-created)
+kubectl apply -f k8s/
+
+# Port forward for access
+kubectl port-forward service/brewbook 8080:80
+```
+
+### Helm Deployment
+```bash
+# Install with Helm
+helm upgrade --install brewbook ./helm/brewbook
+
+# Customize values
+helm upgrade --install brewbook ./helm/brewbook \
+  --set image.repository=your-username/brewbook \
+  --set image.tag=latest
+```
+
+### Service Types
+- **ClusterIP** - Internal access (default)
+- **LoadBalancer** - External access via cloud LB
+- **NodePort** - Direct access on node ports
+
+## 🏗️ Project Structure
 
 ```
 brewbook/
-├─ app/                          # Next.js App Router
-│  ├─ (marketing)/              # Marketing pages (if needed)
-│  ├─ (main)/                   # Main app pages
-│  │  ├─ layout.tsx             # Shell layout (nav, theme)
-│  │  ├─ page.tsx               # Home/Discover
-│  │  ├─ onboarding/page.tsx    # Onboarding & auth
-│  │  ├─ recipes/               # Recipe management
-│  │  ├─ saved/page.tsx         # Saved/bookmarks
-│  │  └─ generator/page.tsx     # AI Recipe Generator
-│  ├─ api/                      # API routes
-│  │  ├─ ai/                    # AI endpoints
-│  │  ├─ drink-of-day/          # Drink of the day
-│  │  └─ recipes/               # Recipe CRUD
-│  └─ globals.css               # Global styles
-├─ components/                   # React components
-│  ├─ ui/                       # shadcn/ui components
-│  ├─ cards/                    # Recipe cards
-│  ├─ forms/                    # Forms
-│  ├─ nav/                      # Navigation
-│  ├─ layout/                   # Layout components
-│  └─ shared/                   # Shared components (EmptyState, LoadingSpinner, ErrorBoundary)
-├─ lib/                         # Utilities and config
-│  ├─ supabase/                 # Supabase clients
-│  ├─ openai.ts                 # OpenAI API functions
-│  ├─ auth.ts                   # Authentication
-│  └─ validators.ts             # Zod schemas
-├─ types/                       # TypeScript types
-├─ styles/                      # Theme CSS
-├─ supabase/                    # Database schema
-├─ k8s/                        # Kubernetes manifests
-├─ helm/                        # Helm chart
-└─ Dockerfile                   # Docker configuration
+├── app/                    # Next.js App Router pages
+├── components/            # React components
+│   ├── auth/             # Authentication components
+│   ├── cards/            # Recipe card components
+│   ├── forms/            # Form components
+│   ├── layout/           # Layout components
+│   ├── nav/              # Navigation components
+│   ├── shared/           # Shared utility components
+│   └── ui/               # shadcn/ui components
+├── contexts/              # React Context providers
+├── lib/                   # Utility libraries
+│   ├── supabase/         # Supabase client setup
+│   ├── services/         # Data service layer
+│   └── validators/       # Zod schemas
+├── styles/                # Global styles and theme
+├── types/                 # TypeScript type definitions
+├── supabase/              # Database migrations
+├── public/                # Static assets
+├── k8s/                   # Kubernetes manifests
+│   └── secrets/          # 🔐 Secrets management
+├── helm/                  # Helm charts
+│   └── brewbook/secrets/ # 🔐 Helm secrets
+├── docker-compose.yml     # Docker Compose configuration
+├── Dockerfile            # Docker build instructions
+├── env.template          # Environment variables template
+├── .env.local            # 🔒 Your secrets (gitignored)
+├── SECRETS_MANAGEMENT.md # 🔐 Secrets management guide
+└── README.md             # This file
 ```
 
-## 🔐 Environment Variables
+## 🎨 UI Components
 
-Required environment variables in `.env.local`:
+Built with **shadcn/ui** components:
+- Button, Input, Textarea, Label
+- Card, Badge, Select
+- Theme toggle with light/dark mode
+- Responsive navigation
 
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL="https://YOUR-PROJECT.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
-SUPABASE_SERVICE_ROLE_KEY="YOUR_SERVICE_ROLE_KEY"
+## 🔐 Authentication
 
-# OpenAI
-OPENAI_API_KEY="sk-..."
+- **Supabase Auth** integration
+- User registration and login
+- Protected routes and user-specific content
+- Session management with React Context
 
-# App
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-```
+## 🗄️ Database Schema
 
-## 🧱 Key Components
+### Tables
+- **`recipes`** - Recipe data with tags, ingredients, steps
+- **`saved_recipes`** - User's saved recipes (many-to-many)
 
-### Authentication
-- **Supabase Auth** with OAuth providers (Google/Apple)
-- **Server-side session management** for SSR
-- **Guest mode** for non-authenticated users
+### Row Level Security (RLS)
+- Users can only see their own saved recipes
+- Recipe creation requires authentication
+- Public read access to all recipes
 
-### AI Integration
-- **OpenAI GPT-4o-mini** for recipe generation
-- **Drink of the Day** with 6-hour caching
-- **Recipe remixing** from existing recipes
-- **Ingredient-based generation**
+## 🌙 Theme System
 
-### Database Schema
-- **Recipes table** with type, temperature, ingredients, steps
-- **Saved recipes** for user bookmarks
-- **Row Level Security** for data protection
-- **PostgreSQL arrays** for ingredients and steps
+- **Light/Dark mode** toggle
+- **CSS variables** for consistent theming
+- **Proper contrast** for accessibility
+- **Persistent** theme preference
 
-### Error Handling & UX
-- **Error boundaries** for graceful error handling
-- **Loading states** with spinners
-- **Empty states** with helpful messaging
-- **Responsive design** for mobile-first experience
+## 📱 Mobile-First Design
 
-## 🐳 Docker & Kubernetes
+- **Responsive layout** for all screen sizes
+- **Touch-friendly** interface
+- **Bottom navigation** for mobile
+- **Optimized** for mobile performance
 
-### Local Development
+## 🚀 Development
+
 ```bash
-# Build and run with Docker Compose
-docker-compose up --build
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Run linting
+npm run lint
 ```
 
-### Kubernetes Deployment
+## 🐳 Docker Development
+
 ```bash
-# Apply manifests directly
+# Start development environment
+docker-compose up -d
+
+# View logs
+docker-compose logs -f brewbook
+
+# Rebuild and restart
+docker-compose down
+docker-compose up -d --build
+
+# Access the app
+# http://localhost:3000
+```
+
+## ☸️ Kubernetes Development
+
+```bash
+# Deploy to local cluster
 kubectl apply -f k8s/
 
-# Or use Helm chart
-helm upgrade --install brewbook ./helm/brewbook \
-  --set image.repository=your-registry/brewbook \
-  --set image.tag=latest \
-  --set ingress.host=brewbook.example.com
+# Check status
+kubectl get pods -l app=brewbook
+
+# View logs
+kubectl logs -l app=brewbook
+
+# Access via port forward
+kubectl port-forward service/brewbook 8080:80
 ```
 
-### Helm Chart
-The Helm chart includes:
-- Configurable replica count and resources
-- Ingress configuration
-- Secret management
-- Values-based customization
+## 📚 Tech Stack
 
-## 🎨 Styling & Theme
+- **Frontend**: Next.js 15, React 18, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Deployment**: Docker, Docker Compose, Kubernetes, Helm
+- **State Management**: React Context API
+- **Form Validation**: Zod
+- **Icons**: Lucide React
+- **Secrets**: Kubernetes Secrets, Environment Variables
 
-### Tailwind CSS
-- **Coffee-inspired color palette** (browns, violets)
-- **Mobile-first responsive design**
-- **Dark theme** by default
-- **Custom CSS variables** for theming
+## 🔒 Security Features
 
-### shadcn/ui Components
-- **Button, Card, Input, Textarea**
-- **Select, Badge, Sheet, Dialog**
-- **Form components** with validation
-- **Toast notifications**
-
-## 🔧 Development
-
-### Scripts
-```bash
-npm run dev          # Development server
-npm run build        # Production build
-npm run start        # Production server
-npm run lint         # ESLint
-```
-
-### Adding New Components
-```bash
-# Add shadcn/ui components
-npx shadcn@latest add <component-name>
-
-# Example
-npx shadcn@latest add table
-```
-
-### Database Changes
-1. Create new migration in `supabase/migrations/`
-2. Update types in `types/index.ts`
-3. Test with local Supabase instance
-
-## 🚀 Production Deployment
-
-### Vercel (Recommended)
-1. Connect your GitHub repository
-2. Set environment variables
-3. Deploy automatically on push
-
-### Self-Hosted
-1. Build Docker image: `docker build -t brewbook .`
-2. Push to registry
-3. Deploy with Kubernetes manifests or Helm chart
-
-### Environment Setup
-- Ensure all environment variables are set
-- Configure Supabase production project
-- Set up proper domain and SSL
-- Configure monitoring and logging
-
-## 🔮 Future Enhancements
-
-### Phase 2 Features
-- **Community features**: likes, comments, sharing
-- **Weekly challenges**: themed recipe contests
-- **Advanced search**: filters, tags, ingredients
-- **Social features**: follow users, recipe collections
-
-### Technical Improvements
-- **Image optimization**: Cloudinary integration
-- **Caching**: Redis for better performance
-- **Analytics**: User behavior tracking
-- **Testing**: Jest, Playwright setup
+- **No hardcoded secrets** in any files
+- **Environment-based configuration** for all deployments
+- **Kubernetes secrets** for production deployments
+- **Git-ignored sensitive files** (.env.local, secrets/)
+- **Placeholder system** prevents accidental credential commits
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test thoroughly
 5. Submit a pull request
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- **Next.js** team for the amazing framework
-- **Supabase** for the backend-as-a-service
-- **shadcn/ui** for the beautiful component library
-- **OpenAI** for the AI capabilities
-- **Tailwind CSS** for the utility-first styling
+- [shadcn/ui](https://ui.shadcn.com/) for beautiful components
+- [Supabase](https://supabase.com/) for backend services
+- [Next.js](https://nextjs.org/) for the React framework
+- [Tailwind CSS](https://tailwindcss.com/) for styling
 
 ---
 
-**BrewBook** - Where every cup tells a story ☕✨
+**Happy brewing! ☕✨**

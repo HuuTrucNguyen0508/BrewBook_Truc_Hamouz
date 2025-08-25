@@ -1,17 +1,16 @@
 apiVersion: v1
 kind: Service
-metadata: 
+metadata:
   name: brewbook-loadbalancer
   labels:
     app: brewbook
 spec:
-  selector: 
-    app: brewbook 
+  selector:
+    app: brewbook
   ports:
     - name: http
       port: 80
       targetPort: 3000
-      protocol: TCP 
+      protocol: TCP
   type: LoadBalancer
-  # For local development with Docker Desktop
   externalTrafficPolicy: Local

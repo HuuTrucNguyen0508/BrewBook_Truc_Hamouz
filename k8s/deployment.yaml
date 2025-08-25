@@ -16,14 +16,20 @@ spec:
     spec:
       containers:
       - name: brewbook
-        image: huutrucnguyen0508/brewbook:latest
+        image: Huu_Truc_Nguyen/brewbook:latest
         ports:
         - containerPort: 3000
         env:
         - name: NEXT_PUBLIC_SUPABASE_URL
-          value: "https://lxicmxufvsftmhyzqkkn.supabase.co"
+          valueFrom:
+            secretKeyRef:
+              name: brewbook-secrets
+              key: supabase-url
         - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
-          value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4aWNteHVmdnNmdG1oeXpxa2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNDA0NjIsImV4cCI6MjA3MTcxNjQ2Mn0.a3zfvDl_gxOOUW406pgExRqkzHJXWnd6isXO67bam4g"
+          valueFrom:
+            secretKeyRef:
+              name: brewbook-secrets
+              key: supabase-anon-key
         resources:
           requests:
             memory: "128Mi"
@@ -43,4 +49,4 @@ spec:
             port: 3000
           initialDelaySeconds: 5
           periodSeconds: 5
-
+        imagePullPolicy: Always

@@ -1,10 +1,9 @@
-# Default values for brewbook
 replicaCount: 2
 
 image:
-  repository: huutrucnguyen0508/brewbook
-  tag: "latest"
+  repository: Huu_Truc_Nguyen/brewbook
   pullPolicy: Always
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -23,14 +22,12 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 3000
+  port: 80
 
 ingress:
   enabled: true
-  className: ""
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  className: "nginx"
+  annotations: {}
   hosts:
     - host: brewbook.local
       paths:
@@ -47,9 +44,9 @@ resources:
     memory: 128Mi
 
 autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 10
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
@@ -59,6 +56,6 @@ tolerations: []
 
 affinity: {}
 
-env:
-  NEXT_PUBLIC_SUPABASE_URL: "https://lxicmxufvsftmhyzqkkn.supabase.co"
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4aWNteHVmdnNmdG1oeXpxa2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNDA0NjIsImV4cCI6MjA3MTcxNjQ2Mn0.a3zfvDl_gxOOUW406pgExRqkzHJXWnd6isXO67bam4g"
+# Environment variables are now loaded from secrets
+# The secret 'brewbook-secrets' must be created separately
+# Use the create-secrets.sh or create-secrets.ps1 script
