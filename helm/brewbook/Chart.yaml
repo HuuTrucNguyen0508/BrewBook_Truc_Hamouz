@@ -1,0 +1,5 @@
+apiVersion: v2
+name: brewbook
+version: 0.1.0
+description: BrewBook Next.js app
+appVersion: "0.1.0"

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brewbook
+  labels:
+    app: brewbook
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: brewbook
+  template:
+    metadata:
+      labels:
+        app: brewbook
+    spec:
+      containers:
+      - name: brewbook
+        image: huutrucnguyen0508/brewbook:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NEXT_PUBLIC_SUPABASE_URL
+          value: "https://lxicmxufvsftmhyzqkkn.supabase.co"
+        - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+          value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4aWNteHVmdnNmdG1oeXpxa2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNDA0NjIsImV4cCI6MjA3MTcxNjQ2Mn0.a3zfvDl_gxOOUW406pgExRqkzHJXWnd6isXO67bam4g"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+

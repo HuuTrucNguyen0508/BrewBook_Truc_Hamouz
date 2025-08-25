@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "brewbook.fullname" . }}
+  labels: 
+    app: {{ include "brewbook.name" . }} 
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector: 
+    matchLabels: 
+      app: {{ include "brewbook.name" . }} 
+  template:
+    metadata: 
+      labels: 
+        app: {{ include "brewbook.name" . }} 
+    spec:
+      containers:
+        - name: web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports: [{ containerPort: 3000 }]
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            requests: {{- toYaml .Values.resources.requests | nindent 12 }}
+            limits: {{- toYaml .Values.resources.limits | nindent 12 }}
