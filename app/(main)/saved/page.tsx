@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import EmptyState from "@/components/shared/EmptyState";
-import { Coffee } from "lucide-react";
 import { RecipeService } from "@/lib/services/recipeService";
 import { Recipe } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import TemperatureIcon from "@/components/ui/TemperatureIcon";
 
 export default function SavedPage() {
   const { user } = useAuth();
@@ -133,7 +133,7 @@ export default function SavedPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <Coffee className="w-5 h-5 text-coffee-400" />
+                <TemperatureIcon recipe={recipe} />
                 <Button
                   variant="ghost"
                   size="sm"

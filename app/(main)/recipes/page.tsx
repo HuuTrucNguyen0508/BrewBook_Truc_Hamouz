@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Coffee } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/shared/EmptyState";
 import { RecipeService } from "@/lib/services/recipeService";
 import { Recipe } from "@/types";
 import SaveButton from "@/components/ui/SaveButton";
+import TemperatureIcon from "@/components/ui/TemperatureIcon";
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -124,7 +125,7 @@ export default function RecipesPage() {
                 </div>
               </Link>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <Coffee className="w-5 h-5 text-coffee-400" />
+                <TemperatureIcon recipe={recipe} />
                 <SaveButton recipeId={recipe.id} />
               </div>
             </div>

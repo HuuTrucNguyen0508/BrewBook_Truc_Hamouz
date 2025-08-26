@@ -3,6 +3,7 @@
 import { Coffee, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import TemperatureIcon from "@/components/ui/TemperatureIcon";
 
 export default function DrinkOfTheDayCard() {
   // Static drink of the day since OpenAI is disabled
@@ -12,6 +13,20 @@ export default function DrinkOfTheDayCard() {
     type: "ube",
     temperature: "hot",
     tags: ["ube", "latte", "creamy", "purple"]
+  };
+
+  // Create a mock recipe object for the TemperatureIcon component
+  const mockRecipe = {
+    id: "drink-of-day",
+    title: drinkOfTheDay.title,
+    description: drinkOfTheDay.description,
+    type: drinkOfTheDay.type as "coffee"|"matcha"|"ube"|"tea",
+    temperature: drinkOfTheDay.temperature as "hot"|"iced",
+    ingredients: [],
+    steps: [],
+    tags: drinkOfTheDay.tags,
+    author_id: null,
+    created_at: new Date().toISOString()
   };
 
   return (
@@ -38,7 +53,8 @@ export default function DrinkOfTheDayCard() {
         <span className="px-2 py-1 bg-coffee-100 dark:bg-coffee-900 text-coffee-700 dark:text-coffee-300 text-xs rounded-full capitalize">
           {drinkOfTheDay.type}
         </span>
-        <span className="px-2 py-1 bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 text-xs rounded-full capitalize">
+        <span className="px-2 py-1 bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 text-xs rounded-full capitalize flex items-center gap-1">
+          <TemperatureIcon recipe={mockRecipe} className="w-3 h-3" />
           {drinkOfTheDay.temperature}
         </span>
         {drinkOfTheDay.tags.slice(0, 2).map((tag) => (

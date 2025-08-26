@@ -2,12 +2,14 @@
 import { useEffect, useState } from "react";
 import DrinkOfTheDayCard from "@/components/cards/DrinkOfTheDayCard";
 import EmptyState from "@/components/shared/EmptyState";
-import { Coffee, Heart } from "lucide-react";
+import { Heart, Bot, Sparkles } from "lucide-react";
 import { RecipeService } from "@/lib/services/recipeService";
 import { Recipe } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import SaveButton from "@/components/ui/SaveButton";
+import TemperatureIcon from "@/components/ui/TemperatureIcon";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -54,6 +56,40 @@ export default function HomePage() {
         </p>
       </div>
 
+      {/* AI Agent Access Section - Only for authenticated users */}
+      {user && (
+        <div className="p-6 bg-gradient-to-r from-coffee-50 to-matcha-50 dark:from-coffee-950/20 dark:to-matcha-950/20 border border-coffee-200 dark:border-coffee-800 rounded-xl">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-coffee-100 dark:bg-coffee-900 rounded-lg">
+              <Bot className="w-5 h-5 text-coffee-600 dark:text-coffee-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-coffee-900 dark:text-coffee-100">
+                AI Recipe Agent
+              </h2>
+              <p className="text-sm text-coffee-700 dark:text-coffee-300">
+                Generate new recipes, scrape from websites, and create AI-powered content
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            <Link href="/admin/ai-agent">
+              <Button className="bg-coffee-600 hover:bg-coffee-700 text-white">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Access AI Agent
+              </Button>
+            </Link>
+            <div className="text-xs text-coffee-600 dark:text-coffee-400 space-y-1">
+              <p>• Web scraping with robots.txt compliance</p>
+              <p>• AI-powered recipe generation</p>
+              <p>• DALL-E 3 image creation</p>
+              <p>• Vector search and RAG</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <DrinkOfTheDayCard />
 
       {/* Saved Recipes Section - Only for authenticated users */}
@@ -95,7 +131,7 @@ export default function HomePage() {
                     </div>
                   </Link>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Coffee className="w-5 h-5 text-coffee-400" />
+                    <TemperatureIcon recipe={recipe} />
                     <SaveButton recipeId={recipe.id} />
                   </div>
                 </div>
@@ -163,7 +199,7 @@ export default function HomePage() {
                     </div>
                   </Link>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Coffee className="w-5 h-5 text-coffee-400" />
+                    <TemperatureIcon recipe={recipe} />
                     <SaveButton recipeId={recipe.id} />
                   </div>
                 </div>

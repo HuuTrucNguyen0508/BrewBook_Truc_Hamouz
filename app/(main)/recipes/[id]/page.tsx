@@ -7,6 +7,7 @@ import { RecipeService } from "@/lib/services/recipeService";
 import { Recipe } from "@/types";
 import SaveButton from "@/components/ui/SaveButton";
 import { useAuth } from "@/contexts/AuthContext";
+import TemperatureIcon from "@/components/ui/TemperatureIcon";
 
 interface RecipePageProps {
   params: Promise<{ id: string }>;
@@ -60,7 +61,8 @@ export default function RecipePage({ params }: RecipePageProps) {
             <span className="capitalize bg-secondary px-2 py-1 rounded-full">
               {recipe.type}
             </span>
-            <span className="capitalize bg-secondary px-2 py-1 rounded-full">
+            <span className="capitalize bg-secondary px-2 py-1 rounded-full flex items-center gap-1">
+              <TemperatureIcon recipe={recipe} className="w-3 h-3" />
               {recipe.temperature}
             </span>
             {recipe.tags.map((tag) => (

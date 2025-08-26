@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Recipe } from "@/types";
 import SaveButton from "@/components/ui/SaveButton";
+import TemperatureIcon from "@/components/ui/TemperatureIcon";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -32,7 +33,8 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             <Badge variant="secondary" className="text-xs">
               {recipe.type}
             </Badge>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <TemperatureIcon recipe={recipe} className="w-3 h-3" />
               {recipe.temperature}
             </Badge>
           </div>

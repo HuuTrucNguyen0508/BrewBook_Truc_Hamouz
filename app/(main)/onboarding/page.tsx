@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { signInWithProvider } from "@/lib/auth";
+import BottomNav from "@/components/nav/BottomNav";
 
 const PREFS = ["Coffee","Matcha","Ube","Seasonal"] as const;
 
@@ -13,7 +14,7 @@ export default function Onboarding() {
   );
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20">
       <h1 className="text-2xl font-bold">Welcome to BrewBook ☕</h1>
       <p className="text-sm text-neutral-400">Pick your vibe to personalize your feed.</p>
       
@@ -51,11 +52,13 @@ export default function Onboarding() {
         <Button 
           className="w-full" 
           variant="ghost" 
-          onClick={()=> window.location.href = "/"}
+          onClick={()=> window.location.href = "/main"}
         >
           Continue as Guest
         </Button>
       </div>
+      
+      <BottomNav />
     </div>
   );
 }

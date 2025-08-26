@@ -23,7 +23,7 @@ create table if not exists public.saved_recipes (
 -- Minimal Row Level Security
 alter table public.recipes enable row level security;
 create policy "recipes read" on public.recipes for select using (true);
-create policy "recipes insert" on public.recipes for insert with check (auth.uid() = author_id or author_id is null);
+create policy "recipes insert" on public.recipes for insert with check (auth.uid() is not null);
 create policy "recipes update own" on public.recipes for update using (auth.uid() = author_id);
 
 alter table public.saved_recipes enable row level security;
